@@ -1,2 +1,0 @@
-export GPT_APIKEY="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"
-export GOOGLE_APPLICATION_CREDENTIALS="./credentials/translation_api_key.json"

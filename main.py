@@ -11,6 +11,8 @@ from datetime import datetime
 import requests, os, json
 from datetime import datetime
 
+print(jwt.encode)
+
 
 ## GPT & google translate
 GPT_APIKEY = os.environ.get("GPT_APIKEY")
@@ -23,6 +25,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 app.config[
     "SQLALCHEMY_DATABASE_URI"
 ] = "postgresql+psycopg2://tmdadm:tmd+123@127.0.0.1:5432/tmd67"
+# ] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = os.urandom(32)
 db = SQLAlchemy(app)
@@ -70,6 +73,29 @@ class Content(db.Model):
 # methods
 
 
+def create_db():
+    db.create_all()
+    user = User(username="johndoe", email="johndoe@example.com", password="password")
+    conversation = Conversation(
+        date="2022-01-01", topic="Sample conversation", lan_code="en", user=user
+    )
+
+    # Add the objects to the session and commit the changes
+    db.session.add(user)
+    db.session.add(conversation)
+    db.session.commit()
+
+    # Add content to the conversation
+    add_content_to_conversation(
+        conversation_id=conversation.conversation_id, content="Hello", sender="A"
+    )
+    add_content_to_conversation(
+        conversation_id=conversation.conversation_id, content="Hi there", sender="B"
+    )
+
+    print("Database created successfully!")
+
+
 def generate_token(user_id):
     payload = {"user_id": user_id}
     token = jwt.encode(payload, app.config["SECRET_KEY"], algorithm="HS256")
@@ -98,7 +124,7 @@ def translate_text(text, source_language, target_language):
 
 
 def add_content_to_conversation(conversation_id, content, sender):
-    """Testing: Adds a content to a conversation table"""
+    """Testing: Adds content to a conversation table"""
     conversation = Conversation.query.get(conversation_id)
     if not conversation:
         return False
@@ -124,8 +150,11 @@ def login():
     password = posted_data["password"]
     try:
         user = User.query.filter_by(email=email).first()
+        print(user, user.check_password(password))
         if user and user.check_password(password):
+            print("token")
             token = generate_token(user.user_id)
+            print(token)
             return (
                 jsonify(
                     {
@@ -139,32 +168,54 @@ def login():
             )
         else:
             return jsonify({"message": "Incorrect email or password"}), 401
-    except:
+    except Exception as e:
+        print(e)
         return jsonify({"message": "Not found"}), 404
 
 
 @app.route("/api/signup", methods=["POST"])
 def signup():
-    posted_data = request.get_json()
-    token = secrets.token_hex(16)
-    username = posted_data["username"]
-    email = posted_data["email"]
-    password = posted_data["password"]
-    user = User(
-        username=username,
-        email=email,
-        password=password,
-    )
-    db.session.add(user)
-    db.session.commit()
-    return jsonify(
-        {
-            "message": "User created successfully",
-            "token": token,
-            "username": user.username,
-            "email": email,
-        }
-    )
+    try:
+        posted_data = request.get_json()
+        print(posted_data)
+        token = secrets.token_hex(16)
+        username = posted_data["username"]
+        email = posted_data["email"]
+        password = posted_data["password"]
+        user = User(
+            username=username,
+            email=email,
+            password=password,
+        )
+        # db.session.add(user)
+        # db.session.commit()
+        print(
+            {
+                "message": "User created successfully",
+                "token": token,
+                "username": user.username,
+                "email": email,
+            }
+        )
+        return jsonify(
+            {
+                "message": "User created successfully",
+                "token": token,
+                "username": user.username,
+                "email": email,
+            },
+            200,
+        )
+    except Exception as e:
+        print(e)
+        return (
+            jsonify(
+                {
+                    "message": "User created failed since it may exsit. ",
+                }
+            ),
+            400,
+        )
 
 
 @app.route("/api/delete-conversation", methods=["DELETE"])
@@ -348,10 +399,9 @@ def get_all_conversations():
 
 
 def generate_gpt_conversation(lan_code, topic, sentence_num, level, note):
-    
     prompt = f"Language code: {lan_code}. Difficulty levels: {level}. Total sentences: {str(sentence_num)}. Topics: {topic}. Note: {note}."
-    
-    example = "[{\"sender\": \"A\", \"content\": \"...\"}, {\"sender\": \"B\", \"content\": \"...\"}]"
+
+    example = '[{"sender": "A", "content": "..."}, {"sender": "B", "content": "..."}]'
 
     response = ai_client.chat.completions.create(
         model="gpt-3.5-turbo",
@@ -435,6 +485,7 @@ def add_content_route():
         add_content_to_conversation(1, "How are you?", "A")
     return "Content added successfully"
 
+
 @app.route("/api")
 def mainpage():
     return "Language helper api"
@@ -442,5 +493,6 @@ def mainpage():
 
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()
+        if db.session.query(User).count() == 0:
+            create_db()
     app.run(debug=True)

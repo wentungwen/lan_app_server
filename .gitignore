@@ -1,5 +1,7 @@
 # credentials
 /credentials
+var.sh
+*.sh
 
 
 # Byte-compiled / optimized / DLL files
