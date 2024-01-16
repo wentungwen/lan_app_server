@@ -481,6 +481,5 @@ def mainpage():
 
 if __name__ == "__main__":
     with app.app_context():
-        if db.session.query(User).first() is None:
-            create_db()
+        create_db()
     app.run(debug=True)
