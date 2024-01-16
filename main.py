@@ -116,6 +116,7 @@ def decode_token(token):
 
 
 def translate_text(text, source_language, target_language):
+    print(GOOGLE_APPLICATION_CREDENTIALS)
     translate_client = translate.Client.from_service_account_json(
         GOOGLE_APPLICATION_CREDENTIALS
     )
@@ -478,8 +479,11 @@ def mainpage():
     return "Language helper api"
 
 
+
+
 if __name__ == "__main__":
+    
     with app.app_context():
         db.create_all()
-        create_db()
+        # create_db()
     app.run(debug=True)
