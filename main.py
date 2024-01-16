@@ -11,7 +11,7 @@ from datetime import datetime
 import requests, os, json
 from datetime import datetime
 
-print(jwt.encode)
+print("jwt.encode", jwt.encode)
 
 
 ## GPT & google translate
@@ -177,7 +177,6 @@ def login():
 def signup():
     try:
         posted_data = request.get_json()
-        print(posted_data)
         token = secrets.token_hex(16)
         username = posted_data["username"]
         email = posted_data["email"]
@@ -187,16 +186,9 @@ def signup():
             email=email,
             password=password,
         )
-        # db.session.add(user)
-        # db.session.commit()
-        print(
-            {
-                "message": "User created successfully",
-                "token": token,
-                "username": user.username,
-                "email": email,
-            }
-        )
+        db.session.add(user)
+        db.session.commit()
+        print(user.username)
         return jsonify(
             {
                 "message": "User created successfully",
