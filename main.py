@@ -11,8 +11,6 @@ from datetime import datetime
 import requests, os, json
 from datetime import datetime
 
-print("jwt.encode", jwt.encode)
-
 
 ## GPT & google translate
 GPT_APIKEY = os.environ.get("GPT_APIKEY")
@@ -74,11 +72,15 @@ class Content(db.Model):
 
 # methods
 
+
 def create_db():
     db.create_all()
     user = User(username="johndoe", email="johndoe@example.com", password="password")
     conversation = Conversation(
-        date="2022-01-01", topic="Sample conversation", lan_code="en", user=user
+        date=datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
+        topic="Sample conversation",
+        lan_code="en",
+        user=user,
     )
 
     # Add the objects to the session and commit the changes
@@ -133,14 +135,6 @@ def add_content_to_conversation(conversation_id, content, sender):
     db.session.add(new_content)
     db.session.commit()
     return True
-
-
-# def check_password(email, password):
-#     user = User.query.filter_by(email=email).first()
-#     if user and user.password == password:
-#         return user
-#     else:
-#         return False
 
 
 # routes
@@ -243,9 +237,10 @@ def save():
 
     if "conversation_id" in saved_conversations:
         conversation_id = saved_conversations["conversation_id"]
+        print()
         original_conversation = Conversation.query.filter_by(
             conversation_id=conversation_id
-        ).first()
+        ).first("conversation_id", conversation_id)
         if original_conversation:
             original_conversation.contents = []
             for conversation in saved_conversations["conversations"]:
@@ -484,8 +479,8 @@ def mainpage():
     return "Language helper api"
 
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     with app.app_context():
         if db.session.query(User).first() is None:
-          create_db()     
+            create_db()
     app.run(debug=True)
