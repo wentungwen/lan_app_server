@@ -74,7 +74,6 @@ class Content(db.Model):
 
 
 def create_db():
-    db.create_all()
     user = User(username="johndoe", email="johndoe@example.com", password="password")
     conversation = Conversation(
         date=datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
@@ -481,5 +480,6 @@ def mainpage():
 
 if __name__ == "__main__":
     with app.app_context():
+        db.create_all()
         create_db()
     app.run(debug=True)
