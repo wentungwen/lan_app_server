@@ -74,7 +74,6 @@ class Content(db.Model):
 
 # methods
 
-
 def create_db():
     db.create_all()
     user = User(username="johndoe", email="johndoe@example.com", password="password")
@@ -485,8 +484,8 @@ def mainpage():
     return "Language helper api"
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": 
     with app.app_context():
-        if db.session.query(User).count() == 0:
-            create_db()
+        if db.session.query(User).first() is None:
+          create_db()     
     app.run(debug=True)
