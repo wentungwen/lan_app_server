@@ -16,14 +16,18 @@ print("jwt.encode", jwt.encode)
 
 ## GPT & google translate
 GPT_APIKEY = os.environ.get("GPT_APIKEY")
-GPT_API_ENDPOINT = "https://api.openai.com/v1/chat/completions"
+GPT_API_ENDPOINT = os.environ.get("GPT_API_ENDPOINT")
 GOOGLE_APPLICATION_CREDENTIALS = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+database_uri = os.environ.get("DATABASE_URL")
+
+if database_uri.startswith("postgres://"):
+    database_uri = database_uri.replace("postgres://", "postgresql://", 1)
 
 ## app and database config
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
-# ] = os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
+
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = os.urandom(32)
 db = SQLAlchemy(app)
