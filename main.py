@@ -396,7 +396,7 @@ def generate_gpt_conversation(lan_code, topic, sentence_num, level, note):
         messages=[
             {
                 "role": "system",
-                "content": f"You are a multi-language generator which generates creative open conversations of A and B senders. The response format must follow valid and complete JSON format, which enclosed in double quotes, for example: {example}",
+                "content": f"You are a multi-language generator which generates creative open conversations of A and B senders. The response format must follow valid and complete JSON format, which enclosed in double quotes, for example: {example}. Keep each content under 100 characters.",
             },
             {
                 "role": "user",
